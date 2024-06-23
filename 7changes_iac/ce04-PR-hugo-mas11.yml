@@ -1,0 +1,28 @@
+---
+name: $(TeamProject)_$(BuildDefinitionName)_$(SourceBranchName)_PR_$(Date:yyyyMMdd)$(Rev:.r)
+jobs:
+  - job: build
+    displayName: PR build
+    pool:
+      vmImage: windows-latest
+    steps:
+      - checkout: self
+        fetchDepth: 1
+      - task: UsePythonVersion@0
+        displayName: Use Python 3.10
+        inputs:
+          versionSpec: 3.10
+      - task: CmdLine@2
+        displayName: Command Line Script
+        inputs:
+          script: >-
+            pip install -r requirements.txt
+
+            pytest -v --junitxml=TEST-selenium.xml
+          workingDirectory: tests/ci
+      - task: PublishTestResults@2
+        displayName: Publish Test Results **/TEST-*.xml
+        inputs:
+          failTaskOnFailedTests: true
+        condition: always()
+...
